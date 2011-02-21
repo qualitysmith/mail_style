@@ -32,7 +32,7 @@ module MailStyle
         real_content_type, ctype_attrs = parse_content_type
         self.body = parse_html(body) if body.is_a?(String) && real_content_type == 'text/html'
       end
-      
+
       def parsable_parts(parts)
         selected = []
         parts.each do |part|
