@@ -17,7 +17,7 @@ end
 
 def css_rules(css)
   @css_rules = css
-  
+
   # Stubs
   File.stub(:exist?).and_return(true)
   File.stub(:read).and_return(@css_rules)

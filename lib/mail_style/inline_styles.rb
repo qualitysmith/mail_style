@@ -89,9 +89,11 @@ module MailStyle
       end
 
       def absolutize_image_sources(document)
-        document.css('img').each do |img|
-          src = img['src']
-          img['src'] = src.gsub(src, absolutize_url(src))
+        if default_url_options[:host].present?
+          document.css('img').each do |img|
+            src = img['src']
+            img['src'] = src.gsub(src, absolutize_url(src))
+          end
         end
 
         document

@@ -8,7 +8,6 @@ ActionMailer::Base.template_root = '.'
 ActionMailer::Base.delivery_method = :test
 ActionMailer::Base.perform_deliveries = true
 ActionMailer::Base.deliveries = []
-ActionMailer::Base.default_url_options[:host] = "example.com"
 ActionMailer::Base.send :include, MailStyle::InlineStyles
 
 # Test Mailer
@@ -137,23 +136,50 @@ describe 'Inline styles' do
           p#image { background: url(../images/test-image.png) }
           p#image2 { background: url("../images/test-image.png") }
         EOF
-
-        # Generate email
-        @email = TestMailer.deliver_test_image_urls(:real)
-        @html = html_part(@email)
       end
 
-      it "should make the css urls absolute" do
-        @html.should match(/<p.*style="background: url\(http:\/\/example\.com\/images\/test\-image\.png\)">/)
+      describe 'when default_url_options[:host] is set' do
+        before(:each) do
+          ActionMailer::Base.default_url_options[:host] = "example.com"
+
+          # Generate email
+          @email = TestMailer.deliver_test_image_urls(:real)
+          @html = html_part(@email)
+        end
+
+        after(:each) do
+          ActionMailer::Base.default_url_options[:host] = nil
+        end
+
+        it "should make the css urls absolute" do
+          @html.should match(/<p.*style="background: url\(http:\/\/example\.com\/images\/test\-image\.png\)">/)
+        end
+
+        it "should not be greedy with the image url match" do
+          @html.should match(/<p id="image2" style='background: url\("http:\/\/example\.com\/images\/test\-image\.png"\)'>/)
+        end
+
+        it "should make image sources absolute" do 
+          # Note: Nokogiri loses the closing slash from the <img> tag for some reason.
+          @html.should match(/<img src="http:\/\/example\.com\/images\/test\.jpg\">/)
+        end
       end
 
-      it "should not be greedy with the image url match" do
-        @html.should match(/<p id="image2" style='background: url\("http:\/\/example\.com\/images\/test\-image\.png"\)'>/)
-      end
+      describe 'when default_url_options[:host] is not set' do
+        before(:each) do
+          # Generate email
+          @email = TestMailer.deliver_test_image_urls(:real)
+          @html = html_part(@email)
+        end
 
-      it "should make image sources absolute" do 
-        # Note: Nokogiri loses the closing slash from the <img> tag for some reason.
-        @html.should match(/<img src="http:\/\/example\.com\/images\/test\.jpg\">/)
+        it "should leave the css urls alone" do
+          @html.should match(/<p id="image" style="background: url\(\.\.\/images\/test\-image\.png\)">/)
+          @html.should match(/<p id="image2" style='background: url\("\.\.\/images\/test\-image\.png"\)'>/)
+        end
+
+        it "should leave the image sources alone" do
+          @html.should match(/<img src="\/images\/test\.jpg">/)
+        end
       end
     end
 
