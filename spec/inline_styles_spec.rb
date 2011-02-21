@@ -9,6 +9,7 @@ ActionMailer::Base.delivery_method = :test
 ActionMailer::Base.perform_deliveries = true
 ActionMailer::Base.deliveries = []
 ActionMailer::Base.default_url_options[:host] = "example.com"
+ActionMailer::Base.send :include, MailStyle::InlineStyles
  
 # Test Mailer
 class TestMailer < ActionMailer::Base

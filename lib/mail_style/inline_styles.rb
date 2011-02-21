@@ -207,5 +207,3 @@ module MailStyle
     end
   end
 end
-
-ActionMailer::Base.send :include, MailStyle::InlineStyles
